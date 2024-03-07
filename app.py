@@ -7,6 +7,8 @@ import itertools
 from collections import Counter
 from collections import deque
 
+from picamera2 import Picamera2
+
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
@@ -15,14 +17,19 @@ from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
 
-#test commemt
+cv.startWindowThread()
+
+picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1080,720 )}))
+picam2.start()
+
+
 def get_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--device", type=int, default=0)
+    parser.add_argument("--device", type=int, default=1)
     parser.add_argument("--width", help='cap width', type=int, default=960)
     parser.add_argument("--height", help='cap height', type=int, default=540)
-
     parser.add_argument('--use_static_image_mode', action='store_true')
     parser.add_argument("--min_detection_confidence",
                         help='min_detection_confidence',
@@ -47,6 +54,9 @@ def main():
     cap_device = args.device
     cap_width = args.width
     cap_height = args.height
+    
+    #cap_width = 640
+    #cap_height = 480
 
     use_static_image_mode = args.use_static_image_mode
     min_detection_confidence = args.min_detection_confidence
@@ -56,6 +66,7 @@ def main():
 
     # Camera preparation ###############################################################
     cap = cv.VideoCapture(cap_device)
+    #cap = picam2.capture_array()
     cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
 
@@ -97,7 +108,7 @@ def main():
     # Finger gesture history ################################################
     finger_gesture_history = deque(maxlen=history_length)
 
-    #  ########################################################################
+    #  ######################################################################
     mode = 0
 
     while True:
@@ -110,7 +121,9 @@ def main():
         number, mode = select_mode(key, mode)
 
         # Camera capture #####################################################
-        ret, image = cap.read()
+        #ret, image  = cap.read()
+        image = picam2.capture_array()
+        ret= True
         if not ret:
             break
         image = cv.flip(image, 1)  # Mirror display
