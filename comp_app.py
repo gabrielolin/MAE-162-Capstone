@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*
+from __future__ import print_function
 import csv
 import copy
 import argparse
 import itertools
+
+import imutils
+from imutils.video import WebcamVideoStream
+from imutils.video import FPS
+
 from collections import Counter
 from collections import deque
 
@@ -15,7 +21,6 @@ from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
 
-#test commemt
 def get_args():
     parser = argparse.ArgumentParser()
 
@@ -32,6 +37,10 @@ def get_args():
                         help='min_tracking_confidence',
                         type=int,
                         default=0.5)
+    parser.add_argument("-n", "--num-frames", type=int, default=100,
+	                    help="# of frames to loop over for FPS test")
+    parser.add_argument("-d", "--display", type=int, default=-1,
+	                    help="Whether or not frames should be displayed")
 
     args = parser.parse_args()
 
@@ -100,6 +109,8 @@ def main():
     #  ########################################################################
     mode = 0
 
+    vs = WebcamVideoStream(src=0).start()
+
     while True:
         fps = cvFpsCalc.get()
 
@@ -110,9 +121,10 @@ def main():
         number, mode = select_mode(key, mode)
 
         # Camera capture #####################################################
-        ret, image = cap.read()
-        if not ret:
-            break
+        #ret, image = cap.read()
+        image = vs.read()
+       # if not ret:
+        #    break
         image = cv.flip(image, 1)  # Mirror display
         debug_image = copy.deepcopy(image)
 
