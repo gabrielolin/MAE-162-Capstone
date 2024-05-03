@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import csv
 import copy
@@ -7,11 +7,14 @@ import itertools
 from collections import Counter
 from collections import deque
 
-from picamera2 import Picamera2
+#from picamera2 import Picamera2
 
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
+
+from cv2 import VideoCapture
+from cv2 import waitKey
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
@@ -19,9 +22,9 @@ from model import PointHistoryClassifier
 
 cv.startWindowThread()
 
-picam2 = Picamera2()
-picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1080,720 )}))
-picam2.start()
+#picam2 = Picamera2()
+#picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (1080,720 )}))
+#picam2.start()
 
 
 def get_args():
@@ -65,7 +68,8 @@ def main():
     use_brect = True
 
     # Camera preparation ###############################################################
-    cap = cv.VideoCapture(cap_device)
+    cap = cv.VideoCapture('/dev/video2')
+    #cap = cv.VideoCapture(-1)
     #cap = picam2.capture_array()
     cap.set(cv.CAP_PROP_FRAME_WIDTH, cap_width)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, cap_height)
@@ -121,14 +125,13 @@ def main():
         number, mode = select_mode(key, mode)
 
         # Camera capture #####################################################
-        #ret, image  = cap.read()
-        image = picam2.capture_array()
-        ret= True
+        ret, image  = cap.read()
+        #image = picam2.capture_array()
+       #ret= True
         if not ret:
             break
         image = cv.flip(image, 1)  # Mirror display
-        debug_image = copy.deepcopy(image)
-
+        debug_image = copy.deepcopy(image)	
         # Detection implementation #############################################################
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
